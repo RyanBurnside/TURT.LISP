@@ -1,11 +1,10 @@
 (DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
 
-(FILECREATED "20-Apr-2026 22:14:24" {DSK}<home>ryan>il>TURT.LISP;14 4754   
+(FILECREATED "22-Apr-2026 00:19:45" {DSK}<home>ryan>il>TURT.LISP;15 4365   
 
-      :CHANGES-TO (FNS TURT-TEST TURTNGON TURTSTAR RT FACE LTT PENDSH)
-                  (VARS TURTCOMS)
+      :CHANGES-TO (FNS FD)
 
-      :PREVIOUS-DATE "20-Apr-2026 20:42:51" {DSK}<home>ryan>il>TURT.LISP;10)
+      :PREVIOUS-DATE "20-Apr-2026 22:14:24" {DSK}<home>ryan>il>TURT.LISP;14)
 
 
 (PRETTYCOMPRINT TURTCOMS)
@@ -47,23 +46,15 @@
 
 (FD
   [LAMBDA (TURT AMOUNT)
-    (LET* [(OLDX (fetch X of TURT))
-           (OLDY (fetch Y of TURT))
-           (DIRECTION (fetch DIRECTION of TURT))
-           (RADIANSFLAG (fetch RADIANSFLAG of TURT))
-           (DRAWFN (fetch DRAWFN of TURT))
-           (PENDASH (fetch PENDASH of TURT))
-           (PENSIZE (fetch PENSIZE of TURT))
-           (PENDOWN (fetch PENDOWN of TURT))
-           (NEWX (PLUS OLDX (TIMES (COS DIRECTION RADIANSFLAG)
-                                   AMOUNT)))
-           (NEWY (PLUS OLDY (TIMES (SIN DIRECTION RADIANSFLAG)
-                                   AMOUNT]
-          (if PENDOWN
-              then (APPLY* DRAWFN OLDX OLDY NEWX NEWY PENSIZE PENDASH))
-          (replace X of TURT with NEWX)
-          (replace Y of TURT with NEWY)
-          TURT])
+    (with TURTLE TURT (LET* [(NEWX (PLUS X (TIMES (COS DIRECTION RADIANSFLAG)
+                                                  AMOUNT)))
+                             (NEWY (PLUS Y (TIMES (SIN DIRECTION RADIANSFLAG)
+                                                  AMOUNT]
+                            (if (AND PENDOWN DRAWFN)
+                                then (APPLY* DRAWFN X Y NEWX NEWY PENSIZE PENDASH))
+                            (SETQ X NEWX)
+                            (SETQ Y NEWY)
+                            TURT])
 
 (JMP
   [LAMBDA (TURT X Y)
@@ -144,8 +135,8 @@
                   else (RT TURT TURNDEG])
 )
 (DECLARE%: DONTCOPY
-  (FILEMAP (NIL (647 4731 (BK 657 . 721) (CREATE-TURTLE 723 . 1186) (DRWFN 1188 . 1278) (FACE 1280 . 
-1368) (FD 1370 . 2254) (JMP 2256 . 2382) (LTT 2384 . 2458) (PD 2460 . 2544) (PENDSH 2546 . 2652) (PENW
- 2654 . 2862) (PU 2864 . 2950) (RT 2952 . 3349) (TURT-TEST 3351 . 3769) (TURTNGON 3771 . 4221) (
-TURTSTAR 4223 . 4729)))))
+  (FILEMAP (NIL (569 4342 (BK 579 . 643) (CREATE-TURTLE 645 . 1108) (DRWFN 1110 . 1200) (FACE 1202 . 
+1290) (FD 1292 . 1865) (JMP 1867 . 1993) (LTT 1995 . 2069) (PD 2071 . 2155) (PENDSH 2157 . 2263) (PENW
+ 2265 . 2473) (PU 2475 . 2561) (RT 2563 . 2960) (TURT-TEST 2962 . 3380) (TURTNGON 3382 . 3832) (
+TURTSTAR 3834 . 4340)))))
 STOP
