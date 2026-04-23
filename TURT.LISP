@@ -1,16 +1,17 @@
 (DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
 
-(FILECREATED "22-Apr-2026 00:19:45" {DSK}<home>ryan>il>TURT.LISP;15 4365   
+(FILECREATED "22-Apr-2026 15:44:19" {DSK}<home>ryan>il>TURT.LISP;17 4403   
 
-      :CHANGES-TO (FNS FD)
+      :CHANGES-TO (FNS TURTNGON TURTSTAR LT)
+                  (VARS TURTCOMS)
 
-      :PREVIOUS-DATE "20-Apr-2026 22:14:24" {DSK}<home>ryan>il>TURT.LISP;14)
+      :PREVIOUS-DATE "22-Apr-2026 00:19:45" {DSK}<home>ryan>il>TURT.LISP;15)
 
 
 (PRETTYCOMPRINT TURTCOMS)
 
 (RPAQQ TURTCOMS ((RECORDS TURTLE)
-                 (FNS BK CREATE-TURTLE DRWFN FACE FD JMP LTT PD PENDSH PENW PU RT TURT-TEST TURTNGON
+                 (FNS BK CREATE-TURTLE DRWFN FACE FD JMP LT PD PENDSH PENW PU RT TURT-TEST TURTNGON 
                       TURTSTAR)))
 (DECLARE%: EVAL@COMPILE
 
@@ -62,10 +63,9 @@
     (replace Y of TURT with Y)
     TURT])
 
-(LTT
+(LT
   [LAMBDA (TURT ANGLE)
-    (RT TURT (MINUS ANGLE))
-    TURT])
+    (RT TURT (MINUS ANGLE])
 
 (PD
   [LAMBDA (TURT)
@@ -119,7 +119,7 @@
                      else (/ 360.0 NUMSIDES]
          (FRPTQ NUMSIDES (FD TURT SIDELENGTH)
                 (if LEFTTURN
-                    then (LTT TURT TURNDEG)
+                    then (LT TURT TURNDEG)
                   else (RT TURT TURNDEG])
 
 (TURTSTAR
@@ -131,12 +131,12 @@
                              NUMPOINTS]
          (FRPTQ NUMPOINTS (FD TURT SIDELENGTH)
                 (if LEFTTURN
-                    then (LTT TURT TURNDEG)
+                    then (LT TURT TURNDEG)
                   else (RT TURT TURNDEG])
 )
 (DECLARE%: DONTCOPY
-  (FILEMAP (NIL (569 4342 (BK 579 . 643) (CREATE-TURTLE 645 . 1108) (DRWFN 1110 . 1200) (FACE 1202 . 
-1290) (FD 1292 . 1865) (JMP 1867 . 1993) (LTT 1995 . 2069) (PD 2071 . 2155) (PENDSH 2157 . 2263) (PENW
- 2265 . 2473) (PU 2475 . 2561) (RT 2563 . 2960) (TURT-TEST 2962 . 3380) (TURTNGON 3382 . 3832) (
-TURTSTAR 3834 . 4340)))))
+  (FILEMAP (NIL (621 4380 (BK 631 . 695) (CREATE-TURTLE 697 . 1160) (DRWFN 1162 . 1252) (FACE 1254 . 
+1342) (FD 1344 . 1917) (JMP 1919 . 2045) (LT 2047 . 2109) (PD 2111 . 2195) (PENDSH 2197 . 2303) (PENW 
+2305 . 2513) (PU 2515 . 2601) (RT 2603 . 3000) (TURT-TEST 3002 . 3420) (TURTNGON 3422 . 3871) (
+TURTSTAR 3873 . 4378)))))
 STOP
