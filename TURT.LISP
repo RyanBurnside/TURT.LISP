@@ -1,17 +1,18 @@
 (DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
 
-(FILECREATED "22-Apr-2026 21:26:44" {DSK}<home>ryan>il>TURT.LISP;21 5347   
+(FILECREATED "23-Apr-2026 16:00:38" {DSK}<home>ryan>il>TURT.LISP;24 7617   
 
-      :CHANGES-TO (FNS TURT-TEST)
+      :CHANGES-TO (FNS TURT-TEST TURTTREE SETXY CLONE)
+                  (VARS TURTCOMS)
 
-      :PREVIOUS-DATE "22-Apr-2026 19:59:21" {DSK}<home>ryan>il>TURT.LISP;20)
+      :PREVIOUS-DATE "22-Apr-2026 21:26:44" {DSK}<home>ryan>il>TURT.LISP;21)
 
 
 (PRETTYCOMPRINT TURTCOMS)
 
 (RPAQQ TURTCOMS ((RECORDS TURTLE)
-                 (FNS BK CREATETURTLE DRWFN FD HOME LT PD PENDSH PENW PU RT SETH SETHOME SETXY 
-                      TURT-TEST TURTLINE TURTNGON TURTSTAR)))
+                 (FNS BK CLONE CREATETURTLE DRWFN FD HOME LT PD PENDSH PENW PU RT SETH SETHOME SETXY
+                      TURT-TEST TURTLINE TURTNGON TURTSTAR TURTTREE)))
 (DECLARE%: EVAL@COMPILE
 
 (RECORD TURTLE (X Y DIRECTION PENDOWN PENSIZE PENDASH DRAWFN RADIANSFLAG HOMEX HOMEY))
@@ -21,6 +22,10 @@
 (BK
   [LAMBDA (TURT AMOUNT)
     (FD TURT (MINUS AMOUNT])
+
+(CLONE
+  [LAMBDA (TURT)
+    (APPEND TURT])
 
 (CREATETURTLE
   [LAMBDA (X Y DIRECTION DRAWFN PENSIZE PENDASH PENDOWN HOMEX HOMEY RADIANSFLAG)
@@ -109,7 +114,7 @@
 
 (SETXY
   [LAMBDA (TURT XPOS YPOS)
-    (WITH TURTLE TURT (TURTLINE TURT XPOS YPOS)
+    (with TURTLE TURT (TURTLINE TURT XPOS YPOS)
           (SETQ X XPOS)
           (SETQ Y YPOS])
 
@@ -122,14 +127,26 @@
            (BUFFERSTREAM (DSPCREATE WINDOWBMP)))
           [DRWFN TURT `(LAMBDA (X Y X2 Y2 PENSIZE PENDASH)
                          (DRAWLINE X Y X2 Y2 PENSIZE NIL ,BUFFERSTREAM NIL PENDASH]
-          (SETHOME TURT 200 200)
           (PU TURT)
+          (SETXY TURT 50 300)
+          (PD TURT)
+          (TURTSTAR TURT 100 50 24)
+          (SETHOME TURT 200 32)
+          (PU TURT)
+          (SETXY TURT 0 200)
+          (for I from 0 to 10 do (SETH TURT 0)
+                                 (PD TURT)
+                                 (FD TURT 400)
+                                 (PU TURT)
+                                 (RT TURT 90)
+                                 (FD TURT (TIMES I I))
+                                 (RT TURT 90)
+                                 (FD TURT 400))
+          (PU TURT)
+          (SETH TURT 90)
           (HOME TURT)
           (PD TURT)
-          (FRPTQ 6 (TURTSTAR TURT 7 120 3)
-                 (RT TURT 60))
-          (SETH TURT 45)
-          (FD TURT 100)
+          (TURTTREE TURT 120 2/3 10)
           (BITBLT WINDOWBMP 0 0 W)
           (CONS TURT W])
 
@@ -160,10 +177,40 @@
                 (if LEFTTURN
                     then (LT TURT TURNDEG)
                   else (RT TURT TURNDEG])
+
+(TURTTREE
+  [LAMBDA (TURT TRUNKLENGTH TRUNKREDUCTIONMULTIPLIER GENERATIONS)
+    (LET* ((GENERATION1 (LIST (CLONE TURT)))
+           (GENERATION2 NIL)
+           (WIGGLE (LIST 10 50))
+           (LENGTHWIGGLE (LIST 3/4 1))
+           (TRUNKWIDTH 10)
+           TURTA TURTB)
+          (PENW (CAR GENERATION1)
+                TRUNKWIDTH)
+          (FD (CAR GENERATION1)
+              TRUNKLENGTH)
+          (FRPTQ GENERATIONS (SETQ TRUNKLENGTH (TIMES TRUNKLENGTH TRUNKREDUCTIONMULTIPLIER))
+                 (SETQ TRUNKWIDTH (TIMES TRUNKWIDTH 3/4))
+                 (for TRT in GENERATION1 do (SETQ TURTA (CLONE TRT))
+                                            (LT TURTA (APPLY 'RAND WIGGLE))
+                                            (PENW TURTA TRUNKWIDTH)
+                                            (FD TURTA (TIMES TRUNKLENGTH (APPLY 'RAND LENGTHWIGGLE)))
+                                            (push GENERATION2 TURTA)
+                                            (SETQ TURTB (CLONE TRT))
+                                            (RT TURTB (APPLY 'RAND WIGGLE))
+                                            (PENW TURTB TRUNKWIDTH)
+                                            (FD TURTB (TIMES TRUNKLENGTH (APPLY 'RAND LENGTHWIGGLE)))
+                                            (push GENERATION2 TURTB))
+                 (SETQ GENERATION1 GENERATION2)
+                 (SETQ GENERATION2 NIL))
+          (SETQ TRUNKLENGTH (TIMES TRUNKLENGTH TRUNKREDUCTIONMULTIPLIER))
+          (for TRT in GENERATION1 do (FD TRT TRUNKLENGTH])
 )
 (DECLARE%: DONTCOPY
-  (FILEMAP (NIL (611 5324 (BK 621 . 685) (CREATETURTLE 687 . 1225) (DRWFN 1227 . 1317) (FD 1319 . 1805) 
-(HOME 1807 . 1942) (LT 1944 . 2006) (PD 2008 . 2092) (PENDSH 2094 . 2200) (PENW 2202 . 2410) (PU 2412
- . 2498) (RT 2500 . 2897) (SETH 2899 . 3174) (SETHOME 3176 . 3299) (SETXY 3301 . 3443) (TURT-TEST 3445
- . 4185) (TURTLINE 4187 . 4364) (TURTNGON 4366 . 4815) (TURTSTAR 4817 . 5322)))))
+  (FILEMAP (NIL (680 7594 (BK 690 . 754) (CLONE 756 . 802) (CREATETURTLE 804 . 1342) (DRWFN 1344 . 1434)
+ (FD 1436 . 1922) (HOME 1924 . 2059) (LT 2061 . 2123) (PD 2125 . 2209) (PENDSH 2211 . 2317) (PENW 2319
+ . 2527) (PU 2529 . 2615) (RT 2617 . 3014) (SETH 3016 . 3291) (SETHOME 3293 . 3416) (SETXY 3418 . 3560
+) (TURT-TEST 3562 . 4834) (TURTLINE 4836 . 5013) (TURTNGON 5015 . 5464) (TURTSTAR 5466 . 5971) (
+TURTTREE 5973 . 7592)))))
 STOP
