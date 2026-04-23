@@ -1,21 +1,20 @@
 (DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
 
-(FILECREATED "22-Apr-2026 15:44:19" {DSK}<home>ryan>il>TURT.LISP;17 4403   
+(FILECREATED "22-Apr-2026 21:26:44" {DSK}<home>ryan>il>TURT.LISP;21 5347   
 
-      :CHANGES-TO (FNS TURTNGON TURTSTAR LT)
-                  (VARS TURTCOMS)
+      :CHANGES-TO (FNS TURT-TEST)
 
-      :PREVIOUS-DATE "22-Apr-2026 00:19:45" {DSK}<home>ryan>il>TURT.LISP;15)
+      :PREVIOUS-DATE "22-Apr-2026 19:59:21" {DSK}<home>ryan>il>TURT.LISP;20)
 
 
 (PRETTYCOMPRINT TURTCOMS)
 
 (RPAQQ TURTCOMS ((RECORDS TURTLE)
-                 (FNS BK CREATE-TURTLE DRWFN FACE FD JMP LT PD PENDSH PENW PU RT TURT-TEST TURTNGON 
-                      TURTSTAR)))
+                 (FNS BK CREATETURTLE DRWFN FD HOME LT PD PENDSH PENW PU RT SETH SETHOME SETXY 
+                      TURT-TEST TURTLINE TURTNGON TURTSTAR)))
 (DECLARE%: EVAL@COMPILE
 
-(RECORD TURTLE (X Y DIRECTION PENDOWN PENSIZE PENDASH DRAWFN RADIANSFLAG))
+(RECORD TURTLE (X Y DIRECTION PENDOWN PENSIZE PENDASH DRAWFN RADIANSFLAG HOMEX HOMEY))
 )
 (DEFINEQ
 
@@ -23,8 +22,8 @@
   [LAMBDA (TURT AMOUNT)
     (FD TURT (MINUS AMOUNT])
 
-(CREATE-TURTLE
-  [LAMBDA (X Y DIRECTION DRAWFN PENSIZE PENDASH PENDOWN RADIANSFLAG)
+(CREATETURTLE
+  [LAMBDA (X Y DIRECTION DRAWFN PENSIZE PENDASH PENDOWN HOMEX HOMEY RADIANSFLAG)
     (create TURTLE
            X _ (OR X 0)
            Y _ (OR Y 0)
@@ -34,16 +33,14 @@
            PENSIZE _ (OR PENSIZE 1)
            PENDASH _ (OR PENDASH NIL)
            PENDOWN _ (OR PENDOWN T)
-           RADIANSFLAG _ (OR RADIANSFLAG NIL])
+           RADIANSFLAG _ (OR RADIANSFLAG NIL)
+           HOMEX _ (OR HOMEX 0)
+           HOMEY _ (OR HOMEY 0])
 
 (DRWFN
   [LAMBDA (TURT FN)
     (replace DRAWFN of TURT with FN)
     TURT])
-
-(FACE
-  [LAMBDA (TURT ANGLE)
-    (replace DIRECTION of TURT with ANGLE])
 
 (FD
   [LAMBDA (TURT AMOUNT)
@@ -51,17 +48,16 @@
                                                   AMOUNT)))
                              (NEWY (PLUS Y (TIMES (SIN DIRECTION RADIANSFLAG)
                                                   AMOUNT]
-                            (if (AND PENDOWN DRAWFN)
-                                then (APPLY* DRAWFN X Y NEWX NEWY PENSIZE PENDASH))
+                            (TURTLINE TURT NEWX NEWY)
                             (SETQ X NEWX)
                             (SETQ Y NEWY)
                             TURT])
 
-(JMP
-  [LAMBDA (TURT X Y)
-    (replace X of TURT with X)
-    (replace Y of TURT with Y)
-    TURT])
+(HOME
+  [LAMBDA (TURT)
+    (with TURTLE TURT (TURTLINE TURT HOMEX HOMEY)
+          (SETQ X HOMEX)
+          (SETQ Y HOMEY])
 
 (LT
   [LAMBDA (TURT ANGLE)
@@ -69,7 +65,7 @@
 
 (PD
   [LAMBDA (TURT)
-    (REPLACE PENDOWN OF TURT WITH T)
+    (replace PENDOWN of TURT with T)
     TURT])
 
 (PENDSH
@@ -99,17 +95,48 @@
                                                    MOD-VAL]
     TURT])
 
+(SETH
+  [LAMBDA (TURT ANGLE)
+    (replace DIRECTION of TURT with (if (fetch RADIANSFLAG of TURT)
+                                        then (CL:MOD ANGLE (TIMES CL:PI 2.0))
+                                      else (CL:MOD ANGLE 360.0])
+
+(SETHOME
+  [LAMBDA (TURT XPOS YPOS)
+    (with TURTLE TURT (SETQ HOMEX XPOS)
+          (SETQ HOMEY YPOS))
+    TURT])
+
+(SETXY
+  [LAMBDA (TURT XPOS YPOS)
+    (WITH TURTLE TURT (TURTLINE TURT XPOS YPOS)
+          (SETQ X XPOS)
+          (SETQ Y YPOS])
+
 (TURT-TEST
   [LAMBDA NIL
-    (LET* ((W (CREATEW (CREATEREGION 200 200 400 400)
-                     "TURT-TEST"))
-           (TT (CREATE-TURTLE)))
-          [DRWFN TT `(LAMBDA (X Y X2 Y2 PENSIZE PENDASH)
-                       (DRAWLINE X Y X2 Y2 PENSIZE NIL ,W NIL PENDASH]
-          (JMP TT 200 200)
-          (FRPTQ 6 (TURTSTAR TT 7 120 3)
-                 (RT TT 60))
-          (CONS TT W])
+    (LET* ((W (DECODE.WINDOW.ARG NIL 400 400 "TURT TEST"))
+           (TURT (CREATETURTLE))
+           [WINDOWBMP (BITMAPCREATE (WINDOWPROP W 'WIDTH)
+                             (WINDOWPROP W 'HEIGHT]
+           (BUFFERSTREAM (DSPCREATE WINDOWBMP)))
+          [DRWFN TURT `(LAMBDA (X Y X2 Y2 PENSIZE PENDASH)
+                         (DRAWLINE X Y X2 Y2 PENSIZE NIL ,BUFFERSTREAM NIL PENDASH]
+          (SETHOME TURT 200 200)
+          (PU TURT)
+          (HOME TURT)
+          (PD TURT)
+          (FRPTQ 6 (TURTSTAR TURT 7 120 3)
+                 (RT TURT 60))
+          (SETH TURT 45)
+          (FD TURT 100)
+          (BITBLT WINDOWBMP 0 0 W)
+          (CONS TURT W])
+
+(TURTLINE
+  [LAMBDA (TURT NEWX NEWY)
+    (with TURTLE TURT (if (AND PENDOWN DRAWFN)
+                          then (APPLY* DRAWFN X Y NEWX NEWY PENSIZE PENDASH])
 
 (TURTNGON
   [LAMBDA (TURT NUMSIDES SIDELENGTH LEFTTURN)
@@ -135,8 +162,8 @@
                   else (RT TURT TURNDEG])
 )
 (DECLARE%: DONTCOPY
-  (FILEMAP (NIL (621 4380 (BK 631 . 695) (CREATE-TURTLE 697 . 1160) (DRWFN 1162 . 1252) (FACE 1254 . 
-1342) (FD 1344 . 1917) (JMP 1919 . 2045) (LT 2047 . 2109) (PD 2111 . 2195) (PENDSH 2197 . 2303) (PENW 
-2305 . 2513) (PU 2515 . 2601) (RT 2603 . 3000) (TURT-TEST 3002 . 3420) (TURTNGON 3422 . 3871) (
-TURTSTAR 3873 . 4378)))))
+  (FILEMAP (NIL (611 5324 (BK 621 . 685) (CREATETURTLE 687 . 1225) (DRWFN 1227 . 1317) (FD 1319 . 1805) 
+(HOME 1807 . 1942) (LT 1944 . 2006) (PD 2008 . 2092) (PENDSH 2094 . 2200) (PENW 2202 . 2410) (PU 2412
+ . 2498) (RT 2500 . 2897) (SETH 2899 . 3174) (SETHOME 3176 . 3299) (SETXY 3301 . 3443) (TURT-TEST 3445
+ . 4185) (TURTLINE 4187 . 4364) (TURTNGON 4366 . 4815) (TURTSTAR 4817 . 5322)))))
 STOP
