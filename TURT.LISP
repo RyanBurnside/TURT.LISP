@@ -1,46 +1,68 @@
 (DEFINE-FILE-INFO PACKAGE "INTERLISP" READTABLE "INTERLISP" BASE 10)
 
-(FILECREATED "23-Apr-2026 16:00:38" {DSK}<home>ryan>il>TURT.LISP;24 7617   
+(FILECREATED "10-May-2026 19:24:31" {DSK}<home>ryan>il>TURT.LISP;45 11263  
 
-      :CHANGES-TO (FNS TURT-TEST TURTTREE SETXY CLONE)
-                  (VARS TURTCOMS)
+      :CHANGES-TO (FNS CS TURTPLAY)
 
-      :PREVIOUS-DATE "22-Apr-2026 21:26:44" {DSK}<home>ryan>il>TURT.LISP;21)
+      :PREVIOUS-DATE "10-May-2026 15:56:40" {DSK}<home>ryan>il>TURT.LISP;43)
 
 
 (PRETTYCOMPRINT TURTCOMS)
 
-(RPAQQ TURTCOMS ((RECORDS TURTLE)
-                 (FNS BK CLONE CREATETURTLE DRWFN FD HOME LT PD PENDSH PENW PU RT SETH SETHOME SETXY
-                      TURT-TEST TURTLINE TURTNGON TURTSTAR TURTTREE)))
+(RPAQQ TURTCOMS
+       ((RECORDS TURTLE)
+        (FNS BK CLONE CREATETURTLE CS DRWFN FD HOME LT PD PENDSH PENW PU RT SETH SETHOME SETXY 
+             TURT-TEST TURTDRAW TURTLECALLUPDATE TURTLINE TURTNGON TURTPLAY TURTSTAR TURTTREE UPDTFN)
+        ))
 (DECLARE%: EVAL@COMPILE
 
-(RECORD TURTLE (X Y DIRECTION PENDOWN PENSIZE PENDASH DRAWFN RADIANSFLAG HOMEX HOMEY))
+(RECORD TURTLE (X Y DIRECTION PENDOWN PENSIZE PENDASH DRAWFN RADIANSFLAG HOMEX HOMEY UPDATEFN 
+                  USERDATA))
 )
 (DEFINEQ
 
 (BK
   [LAMBDA (TURT AMOUNT)
-    (FD TURT (MINUS AMOUNT])
+    (with TURTLE TURT (LET* [(NEWX (- X (TIMES (COS DIRECTION RADIANSFLAG)
+                                               AMOUNT)))
+                             (NEWY (- Y (TIMES (SIN DIRECTION RADIANSFLAG)
+                                               AMOUNT]
+                            (TURTLINE TURT NEWX NEWY)
+                            (SETQ X NEWX)
+                            (SETQ Y NEWY)
+                            (TURTLECALLUPDATE TURT)
+                            TURT])
 
 (CLONE
   [LAMBDA (TURT)
     (APPEND TURT])
 
 (CREATETURTLE
-  [LAMBDA (X Y DIRECTION DRAWFN PENSIZE PENDASH PENDOWN HOMEX HOMEY RADIANSFLAG)
+  [LAMBDA (X Y DIRECTION DRAWFN PENSIZE PENDASH PENDOWN HOMEX HOMEY RADIANSFLAG UPDATEFN)
     (create TURTLE
            X _ (OR X 0)
            Y _ (OR Y 0)
            DIRECTION _ (OR DIRECTION 90)
-           DRAWFN _ [OR DRAWFN '(LAMBDA (X Y X2 Y2 PENSIZE PENDASH)
-                                  NIL]
+           DRAWFN _ (OR DRAWFN NIL)
            PENSIZE _ (OR PENSIZE 1)
            PENDASH _ (OR PENDASH NIL)
            PENDOWN _ (OR PENDOWN T)
            RADIANSFLAG _ (OR RADIANSFLAG NIL)
            HOMEX _ (OR HOMEX 0)
-           HOMEY _ (OR HOMEY 0])
+           HOMEY _ (OR HOMEY 0)
+           UPDATEFN _ (OR UPDATEFN NIL])
+
+(CS
+  [LAMBDA (TURTPLAYWINDOW)
+
+    (* ;; "Clears the bitmap of a Turtle Play window redraws turtle")
+
+    (LET [[BMPSTREAM (CAR (WINDOWPROP TURTPLAYWINDOW 'BMPSTREAM]
+          (TURT (CAR (WINDOWPROP TURTPLAYWINDOW 'TURT]
+         (if BMPSTREAM
+             then (CLEARW TURTPLAYWINDOW)
+                  (DSPFILL NIL WHITESHADE NIL BMPSTREAM)
+                  (TURTDRAW TURT TURTPLAYWINDOW 32])
 
 (DRWFN
   [LAMBDA (TURT FN)
@@ -49,28 +71,38 @@
 
 (FD
   [LAMBDA (TURT AMOUNT)
-    (with TURTLE TURT (LET* [(NEWX (PLUS X (TIMES (COS DIRECTION RADIANSFLAG)
-                                                  AMOUNT)))
-                             (NEWY (PLUS Y (TIMES (SIN DIRECTION RADIANSFLAG)
-                                                  AMOUNT]
+    (with TURTLE TURT (LET* [(NEWX (+ X (TIMES (COS DIRECTION RADIANSFLAG)
+                                               AMOUNT)))
+                             (NEWY (+ Y (TIMES (SIN DIRECTION RADIANSFLAG)
+                                               AMOUNT]
                             (TURTLINE TURT NEWX NEWY)
                             (SETQ X NEWX)
                             (SETQ Y NEWY)
+                            (TURTLECALLUPDATE TURT)
                             TURT])
 
 (HOME
   [LAMBDA (TURT)
     (with TURTLE TURT (TURTLINE TURT HOMEX HOMEY)
           (SETQ X HOMEX)
-          (SETQ Y HOMEY])
+          (SETQ Y HOMEY)
+          (TURTLECALLUPDATE TURT])
 
 (LT
   [LAMBDA (TURT ANGLE)
-    (RT TURT (MINUS ANGLE])
+    [LET* ((MOD-VAL (if (fetch RADIANSFLAG of TURT)
+                        then (TIMES CL:PI 2.0)
+                      else 360.0))
+           (CURRENT-ANGLE (fetch DIRECTION of TURT)))
+          (with TURTLE TURT (SETQ DIRECTION (CL:MOD (+ CURRENT-ANGLE ANGLE)
+                                                   MOD-VAL]
+    (TURTLECALLUPDATE TURT)
+    TURT])
 
 (PD
   [LAMBDA (TURT)
     (replace PENDOWN of TURT with T)
+    (TURTLECALLUPDATE TURT)
     TURT])
 
 (PENDSH
@@ -88,6 +120,7 @@
 (PU
   [LAMBDA (TURT)
     (replace PENDOWN of TURT with NIL)
+    (TURTLECALLUPDATE TURT)
     TURT])
 
 (RT
@@ -98,13 +131,16 @@
            (CURRENT-ANGLE (fetch DIRECTION of TURT)))
           (with TURTLE TURT (SETQ DIRECTION (CL:MOD (- CURRENT-ANGLE ANGLE)
                                                    MOD-VAL]
+    (TURTLECALLUPDATE TURT)
     TURT])
 
 (SETH
   [LAMBDA (TURT ANGLE)
     (replace DIRECTION of TURT with (if (fetch RADIANSFLAG of TURT)
                                         then (CL:MOD ANGLE (TIMES CL:PI 2.0))
-                                      else (CL:MOD ANGLE 360.0])
+                                      else (CL:MOD ANGLE 360.0)))
+    (TURTLECALLUPDATE TURT)
+    TURT])
 
 (SETHOME
   [LAMBDA (TURT XPOS YPOS)
@@ -116,7 +152,9 @@
   [LAMBDA (TURT XPOS YPOS)
     (with TURTLE TURT (TURTLINE TURT XPOS YPOS)
           (SETQ X XPOS)
-          (SETQ Y YPOS])
+          (SETQ Y YPOS)
+          (TURTLECALLUPDATE TURT))
+    TURT])
 
 (TURT-TEST
   [LAMBDA NIL
@@ -150,6 +188,30 @@
           (BITBLT WINDOWBMP 0 0 W)
           (CONS TURT W])
 
+(TURTDRAW
+  [LAMBDA (TURT STREAM SIDELN)
+    (LET ((TEMP (CLONE TURT)))
+         [DRWFN TEMP `(LAMBDA (XX YY XX2 YY2 IGNORED IGNORED2)
+                        (DRAWLINE XX YY XX2 YY2 1 NIL ,STREAM NIL IGNORED2]
+         (UPDTFN TEMP NIL)
+         (PD TEMP)
+         (with TURTLE TEMP (if RADIANSFLAG
+                               then (SETQ DIRECTION (TIMES DIRECTION 57.2958)))
+               (SETQ RADIANSFLAG NIL))
+         (RT TEMP 90)
+         (FD TEMP (TIMES SIDELN 1/4))
+         (LT TEMP 104.48)
+         (FD TEMP SIDELN)
+         (LT TEMP 151.04)
+         (FD TEMP SIDELN)
+         (LT TEMP 104.48)
+         (FD TEMP (TIMES SIDELN 1/4])
+
+(TURTLECALLUPDATE
+  [LAMBDA (TURT)
+    (with TURTLE TURT (if UPDATEFN
+                          then (APPLY* UPDATEFN TURT])
+
 (TURTLINE
   [LAMBDA (TURT NEWX NEWY)
     (with TURTLE TURT (if (AND PENDOWN DRAWFN)
@@ -165,6 +227,33 @@
                 (if LEFTTURN
                     then (LT TURT TURNDEG)
                   else (RT TURT TURNDEG])
+
+(TURTPLAY
+  [LAMBDA NIL
+
+    (* ;; "Produces a turtle for drawing and maps screen drawing to his drawing functions. Returns a cons pair of Turtle instance and Window he operates in. Capture the output to use the turtle manually.")
+
+    (LET* ((W (DECODE.WINDOW.ARG NIL 400 400 "TURTPLAY"))
+           (TURT (CREATETURTLE))
+           [WINDOWBMP (BITMAPCREATE (WINDOWPROP W 'WIDTH)
+                             (WINDOWPROP W 'HEIGHT]
+           (BUFFERSTREAM (DSPCREATE WINDOWBMP)))
+          (WINDOWADDPROP W 'TURT TURT)
+          (WINDOWADDPROP W 'BMP WINDOWBMP)
+          (WINDOWADDPROP W 'BMPSTREAM BUFFERSTREAM)
+          [DRWFN TURT `(LAMBDA (X Y X2 Y2 PENSIZE PENDASH)
+                         (DRAWLINE X Y X2 Y2 PENSIZE NIL ,BUFFERSTREAM NIL PENDASH]
+          [UPDTFN TURT `(LAMBDA (TURT)
+                          (CLEARW ,W)
+                          (BITBLT ,WINDOWBMP 0 0 ,W)
+                          (TURTDRAW TURT ,W 32]
+          (BITBLT WINDOWBMP 0 0 W)
+          (SETHOME TURT 200 200)
+          (PU TURT)
+          (HOME TURT)
+          (PD TURT)
+          (TURTDRAW TURT W 32)
+          (CONS TURT W])
 
 (TURTSTAR
   [LAMBDA (TURT NUMPOINTS SIDELENGTH SKIP LEFTTURN)
@@ -206,11 +295,17 @@
                  (SETQ GENERATION2 NIL))
           (SETQ TRUNKLENGTH (TIMES TRUNKLENGTH TRUNKREDUCTIONMULTIPLIER))
           (for TRT in GENERATION1 do (FD TRT TRUNKLENGTH])
+
+(UPDTFN
+  [LAMBDA (TURT FN)
+    (replace UPDATEFN of TURT with FN)
+    TURT])
 )
 (DECLARE%: DONTCOPY
-  (FILEMAP (NIL (680 7594 (BK 690 . 754) (CLONE 756 . 802) (CREATETURTLE 804 . 1342) (DRWFN 1344 . 1434)
- (FD 1436 . 1922) (HOME 1924 . 2059) (LT 2061 . 2123) (PD 2125 . 2209) (PENDSH 2211 . 2317) (PENW 2319
- . 2527) (PU 2529 . 2615) (RT 2617 . 3014) (SETH 3016 . 3291) (SETHOME 3293 . 3416) (SETXY 3418 . 3560
-) (TURT-TEST 3562 . 4834) (TURTLINE 4836 . 5013) (TURTNGON 5015 . 5464) (TURTSTAR 5466 . 5971) (
-TURTTREE 5973 . 7592)))))
+  (FILEMAP (NIL (708 11240 (BK 718 . 1248) (CLONE 1250 . 1296) (CREATETURTLE 1298 . 1814) (CS 1816 . 
+2233) (DRWFN 2235 . 2325) (FD 2327 . 2857) (HOME 2859 . 3032) (LT 3034 . 3463) (PD 3465 . 3581) (
+PENDSH 3583 . 3689) (PENW 3691 . 3899) (PU 3901 . 4019) (RT 4021 . 4450) (SETH 4452 . 4771) (SETHOME 
+4773 . 4896) (SETXY 4898 . 5089) (TURT-TEST 5091 . 6363) (TURTDRAW 6365 . 7075) (TURTLECALLUPDATE 7077
+ . 7217) (TURTLINE 7219 . 7396) (TURTNGON 7398 . 7847) (TURTPLAY 7849 . 9015) (TURTSTAR 9017 . 9522) (
+TURTTREE 9524 . 11143) (UPDTFN 11145 . 11238)))))
 STOP
